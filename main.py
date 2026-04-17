@@ -37,8 +37,6 @@ def download_task(original_url: str):
         "--add-metadata",
         "--embed-thumbnail",
         "--ffmpeg-location", BIN_DIR,
-        # 「音声抽出(ExtractAudio)」の時だけAACでの再エンコードと音量正規化を行う
-        "--postprocessor-args", "ExtractAudio:-c:a aac -af loudnorm=I=-14:TP=-1.5:LRA=11",
         "-o", output_template,
         music_url
     ]
