@@ -35,7 +35,7 @@ def download_task(original_url: str):
     # URL変換
     music_url = original_url.replace("www.youtube.com", "music.youtube.com").replace("youtu.be/", "music.youtube.com/watch?v=")
     # 保存パスのテンプレート作成（アーティスト名/曲名 [ID].m4a）
-    output_template = os.path.join(SAVE_DIR, "%(uploader)s", "%(title)s [%(id)s].%(ext)s")
+    output_template = os.path.join(SAVE_DIR, "%(title)s [%(id)s].%(ext)s")
 
     # yt-dlpコマンドの組み立て
     command = [
