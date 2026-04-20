@@ -26,7 +26,12 @@ pip install -r requirements.txt
 プロジェクトフォルダ内の「start_server.vbs」のショートカットを作成し、Windowsのスタートアップフォルダ（shell:startup）に配置してください。
 
 ### 3. iOSショートカットの作成
-assets/shortcut_01.pngを参考にして、iPhone側でショートカットを作成し、共有シートから実行できるように設定してください。
+iPhone側でYouTubeのURLをサーバーに送信するためのショートカットを設定します。
+最も簡単な方法は、以下のリンクからテンプレートをダウンロードすることです。
+
+[ショートカットを追加する (iCloud Link)](https://www.icloud.com/shortcuts/d2651ca7c99741feb71932b95f830def)
+
+自身で手動作成する場合は、assets/shortcut_01.png を参考にアクションを組み立ててください。
 
 ---
 
