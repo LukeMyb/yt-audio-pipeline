@@ -132,4 +132,4 @@ def add_to_queue(request: URLRequest, background_tasks: BackgroundTasks):
 
 if __name__ == "__main__":
     # host="0.0.0.0" でTailscale経由のアクセスを許可
-    uvicorn.run(app, host="100.88.57.78", port=8000)
+    uvicorn.run(app, host="100.88.57.78", port=8010)
