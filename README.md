@@ -46,8 +46,9 @@ VITE_API_BASE_URL=http://xxx.xx.xx.xx:8749
 ```
 ※ `HOST` および `VITE_API_BASE_URL` のIPアドレス部分は、ご自身のPCのローカルIP（またはTailscaleのIPアドレス）に書き換えてください。
 
-### 4. 自動起動の設定
-プロジェクトフォルダ内の「start_yt-audio-pipeline.vbs」のショートカットを作成し、Windowsのスタートアップフォルダ（shell:startup）に配置してください。
+### 4. 自動起動・常駐化の設定
+プロジェクトフォルダ内の `start_yt-audio-pipeline.vbs` のショートカットを作成し、Windowsのスタートアップフォルダ（`Win + R`キーを押して `shell:startup` と入力）に配置してください。
+これにより、PC起動時にターミナル画面を出さずに **APIサーバーとWebダッシュボードの両方がバックグラウンドで自動起動・常駐** するようになります。
 
 ### 5. iOSショートカットの作成
 iPhone側でYouTubeのURLをサーバーに送信するためのショートカットを設定します。
