@@ -55,7 +55,8 @@ def download_task(original_url: str):
 
     update_status(f"[Worker] yt-dlpによるダウンロードを開始します...")
     try:
-        subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
+        # 10分(600秒)でタイムアウトする安全装置を追加
+        subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True, timeout=600)
         update_status(f"[Worker] ダウンロードとフォルダ振り分けが完了しました。")
 
         # ダウンロード完了後のファイル検索プロセス
@@ -83,7 +84,8 @@ def download_task(original_url: str):
                 ffmpeg_exe, "-i", filepath,
                 "-af", "ebur128=framelog=verbose:peak=true", "-f", "null", "-"
             ]
-            ffmpeg_result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            # ffmpegは通常数秒で終わるため、60秒でタイムアウトする安全装置を追加
+            ffmpeg_result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
             
             # LUFSとTrue Peak（dBFS）の抽出
             lufs_match = re.search(r"I:\s+([-\d\.]+)\s+LUFS", ffmpeg_result.stderr)
@@ -117,8 +119,12 @@ def download_task(original_url: str):
                 print(ffmpeg_result.stderr)
                 print("=============================================================================")
 
+    except subprocess.TimeoutExpired:
+        update_status("[Worker] エラー: 処理がタイムアウトしました。")
     except subprocess.CalledProcessError as e:
         update_status(f"[Worker] エラーが発生しました:\n{e.stderr}")
+    except Exception as e:
+        update_status(f"[Worker] 予期せぬエラーが発生しました: {str(e)}")
     finally:
         active_downloads -= 1
         print("=" * 50 + "\n")
