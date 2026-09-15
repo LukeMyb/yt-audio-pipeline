@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Music, RefreshCw, Trash2, HardDrive, Disc } from 'lucide-react';
+import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Plus } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8749';
 
@@ -13,6 +13,8 @@ interface Song {
 function App() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [urlInput, setUrlInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 曲一覧を取得する関数
   const fetchSongs = async () => {
@@ -57,6 +59,36 @@ function App() {
     fetchSongs();
   }, []);
 
+  // URL送信処理
+  const handleAddUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!urlInput.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      });
+
+      if (response.ok) {
+        setUrlInput('');
+        // バックグラウンド処理のため、即座に一覧には反映されないがアラートで通知する
+        alert('ダウンロードをバックグラウンドで開始しました！\n数分後にライブラリを更新してください。');
+      } else {
+        alert('エラーが発生しました。');
+      }
+    } catch (error) {
+      console.error('通信エラー:', error);
+      alert('サーバーと通信できませんでした。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 p-4 md:p-8 flex justify-center font-sans">
       <div className="max-w-4xl w-full flex flex-col gap-6">
@@ -77,6 +109,30 @@ function App() {
             <RefreshCw size={18} className={isLoading ? 'animate-spin text-blue-500' : ''} />
           </button>
         </div>
+
+        {/* URL追加フォーム */}
+        <form onSubmit={handleAddUrl} className="flex gap-2 w-full">
+          <input
+            type="text"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="YouTubeのURLを入力して追加..."
+            className="flex-1 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-shadow shadow-sm"
+            disabled={isSubmitting}
+          />
+          <button
+            type="submit"
+            disabled={!urlInput.trim() || isSubmitting}
+            className="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-medium rounded-xl transition-colors flex items-center gap-2 shrink-0 shadow-sm"
+          >
+            {isSubmitting ? (
+              <RefreshCw size={18} className="animate-spin" />
+            ) : (
+              <Plus size={18} />
+            )}
+            <span className="hidden sm:inline">追加</span>
+          </button>
+        </form>
 
         {/* 曲一覧エリア */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
