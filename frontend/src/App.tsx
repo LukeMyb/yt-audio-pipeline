@@ -15,6 +15,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [urlInput, setUrlInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // 曲一覧を取得する関数
   const fetchSongs = async () => {
@@ -43,14 +44,14 @@ function App() {
         method: 'DELETE',
       });
       if (response.ok) {
-        // 削除成功したらリストを再読み込みして画面を更新
+        setStatusMessage(`「${filename}」を削除しました`);
         fetchSongs();
       } else {
-        alert('削除に失敗しました。');
+        setStatusMessage('削除に失敗しました。');
       }
     } catch (error) {
       console.error('通信エラー:', error);
-      alert('サーバーと通信できませんでした。');
+      setStatusMessage('サーバーと通信できませんでした。');
     }
   };
 
@@ -65,6 +66,8 @@ function App() {
     if (!urlInput.trim()) return;
 
     setIsSubmitting(true);
+    setStatusMessage('追加リクエストを送信中...');
+
     try {
       const response = await fetch(`${API_BASE_URL}/add`, {
         method: 'POST',
@@ -76,14 +79,13 @@ function App() {
 
       if (response.ok) {
         setUrlInput('');
-        // バックグラウンド処理のため、即座に一覧には反映されないがアラートで通知する
-        alert('ダウンロードをバックグラウンドで開始しました！\n数分後にライブラリを更新してください。');
+        setStatusMessage('バックグラウンドでダウンロードを開始しました！');
       } else {
-        alert('エラーが発生しました。');
+        setStatusMessage('エラーが発生しました。');
       }
     } catch (error) {
       console.error('通信エラー:', error);
-      alert('サーバーと通信できませんでした。');
+      setStatusMessage('サーバーと通信できませんでした。');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,6 +95,13 @@ function App() {
     <div className="min-h-screen bg-zinc-950 text-zinc-200 p-4 md:p-8 flex justify-center font-sans">
       <div className="max-w-4xl w-full flex flex-col gap-6">
         
+        {/* ステータスメッセージ */}
+        <div className="h-6">
+          {statusMessage && (
+            <p className="text-lg font-medium text-green-400 animate-in fade-in duration-300">{statusMessage}</p>
+          )}
+        </div>
+
         {/* ヘッダー部分 */}
         <div className="flex flex-row items-center justify-between">
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
