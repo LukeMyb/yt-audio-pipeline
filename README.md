@@ -15,31 +15,44 @@ iPhone（iOSショートカット）からYouTubeのURLを送信し、PC上の�
 
 ## セットアップ手順
 
-### 1. 必要なライブラリのインストール
-Python 3.10以上をインストールし、プロジェクトのルートで以下のコマンドを実行して依存ライブラリを導入してください。
+### 1. 必要な環境とライブラリのインストール
+Python 3.10以上 および **Node.js** をインストールしてください。
+（※Node.jsはYouTubeのボット対策(JSチャレンジ)を自動突破するために必須となります）
+
+その後、プロジェクトのルートで以下のコマンドを実行して依存ライブラリを導入してください。
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 自動起動の設定
+### 2. YouTubeのCookie連携 (必須: Firefox)
+最近のYouTubeの仕様変更により、ダウンロードにはログイン情報（Cookie）の連携が必須となりました。
+Chrome等のブラウザは強力な暗号化がかかっており外部ツールから読み取れないため、連携には **Firefox** が必要です。
+
+1. [Firefox](https://www.mozilla.org/ja/firefox/new/) をインストールします。
+2. Firefoxを起動し、[YouTube](https://www.youtube.com/) にアクセスしてご自身のアカウントでログインします。
+3. ログインが完了したら、Firefoxを閉じます。
+
+※ツールはバックグラウンドでFirefoxのCookieを自動参照するため、普段のブラウジングはBraveやChromeなどお好きなブラウザを使用して問題ありません。
+
+### 3. 自動起動の設定
 プロジェクトフォルダ内の「start_yt-audio-pipeline.vbs」のショートカットを作成し、Windowsのスタートアップフォルダ（shell:startup）に配置してください。
 
-### 3. iOSショートカットの作成
+### 4. iOSショートカットの作成
 iPhone側でYouTubeのURLをサーバーに送信するためのショートカットを設定します。
 最も簡単な方法は、以下のリンクからテンプレートをダウンロードすることです。
-
-### 4. PCブラウザからの追加（ブックマークレット）
-PCのブラウザからワンクリックで現在開いているYouTube動画のURLをサーバーへ送信できます。
-
-1. `assets/bookmarklet.js` を開き、コード内の `xxx.xx.xx.xx` をお使いのPC（Tailscaleなど）のIPv4アドレスに書き換えます。
-2. ブラウザ（Chrome/Edgeなど）のブックマークバーで右クリックし、「ページを追加」を選択します。
-3. 名前を「Pipelineに追加」などに設定します。
-4. URL欄に、1で書き換えた `bookmarklet.js` のコード全体を貼り付けて保存します。
 
 [ショートカットを追加する (iCloud Link)](https://www.icloud.com/shortcuts/d2651ca7c99741feb71932b95f830def)
 
 自身で手動作成する場合は、assets/shortcut_01.png を参考にアクションを組み立ててください。
+
+### 5. PCブラウザからの追加（ブックマークレット）
+PCのブラウザからワンクリックで現在開いているYouTube動画のURLをサーバーへ送信できます。
+
+1. `assets/bookmarklet.js` を開き、コード内の `xxx.xx.xx.xx` をお使いのPC（Tailscaleなど）のIPv4アドレスに書き換えます。
+2. ブラウザ（Chrome/Edge/Braveなど）のブックマークバーで右クリックし、「ページを追加」を選択します。
+3. 名前を「Pipelineに追加」などに設定します。
+4. URL欄に、1で書き換えた `bookmarklet.js` のコード全体を貼り付けて保存します。
 
 ---
 
