@@ -60,6 +60,57 @@ function App() {
     fetchSongs();
   }, []);
 
+  const [isPolling, setIsPolling] = useState(false);
+
+  // 初期ロード時にバックグラウンドで処理が走っていないか確認
+  useEffect(() => {
+    const checkActive = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.is_active) {
+            setIsPolling(true);
+            if (data.status) setStatusMessage(data.status);
+          }
+        }
+      } catch (e) {}
+    };
+    checkActive();
+  }, []);
+
+  // バックグラウンドの処理ステータスをポーリング (isPollingがtrueの時のみ実行)
+  useEffect(() => {
+    if (!isPolling) return;
+    
+    let lastStatus = '';
+    
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          // ステータスに変化があった時のみメッセージを更新
+          if (data.status && data.status !== lastStatus) {
+            lastStatus = data.status;
+            setStatusMessage(data.status);
+          }
+          
+          // バックグラウンド処理が完全に終了したらポーリングを止める
+          if (!data.is_active) {
+            setIsPolling(false);
+            // 処理が完了したはずなのでライブラリを更新
+            fetchSongs();
+          }
+        }
+      } catch (e) {
+        setIsPolling(false);
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isPolling]);
+
   // URL送信処理
   const handleAddUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +130,7 @@ function App() {
 
       if (response.ok) {
         setUrlInput('');
-        setStatusMessage('バックグラウンドでダウンロードを開始しました！');
+        setIsPolling(true); // 送信成功と同時にポーリングを開始
       } else {
         setStatusMessage('エラーが発生しました。');
       }

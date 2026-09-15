@@ -9,8 +9,19 @@ from mutagen.mp4 import MP4
 SAVE_DIR = os.path.join("data", "active")
 BIN_DIR = "bin"
 
+current_status = ""
+active_downloads = 0
+
+def update_status(msg: str):
+    global current_status
+    current_status = msg
+    print(msg)
+
 # バックグラウンドでのダウンロード処理
 def download_task(original_url: str):
+    global active_downloads
+    active_downloads += 1
+    update_status(f"[Worker] ダウンロードタスクを準備中...")
     # URLから11桁の動画IDを抽出
     video_id = None
     id_match = re.search(r"(?:v=|\.be\/)([a-zA-Z0-9_-]{11})", original_url)
@@ -42,10 +53,10 @@ def download_task(original_url: str):
 
     command.append(music_url)
 
-    print(f"[Worker] yt-dlpによるダウンロードを開始します...")
+    update_status(f"[Worker] yt-dlpによるダウンロードを開始します...")
     try:
         subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
-        print(f"[Worker] ダウンロードとフォルダ振り分けが完了しました。")
+        update_status(f"[Worker] ダウンロードとフォルダ振り分けが完了しました。")
 
         # ダウンロード完了後のファイル検索プロセス
         filepath = None
@@ -58,13 +69,13 @@ def download_task(original_url: str):
             if found_files:
                 filepath = str(found_files[0])
             else:
-                print(f"[Worker] エラー: 動画ID '{video_id}' を含むファイルが見つかりませんでした。")
+                update_status(f"[Worker] エラー: 動画ID '{video_id}' を含むファイルが見つかりませんでした。")
         else:
-            print(f"[Worker] エラー: URLから動画IDを抽出できなかったため検索をスキップします。")
+            update_status(f"[Worker] エラー: URLから動画IDを抽出できなかったため検索をスキップします。")
 
         # 音量（LUFS）とピーク値の解析・ReplayGainメタデータの付与
         if filepath:
-            print(f"[Worker] 音量とピーク値を解析中... ({filepath})")
+            update_status(f"[Worker] 音量とピーク値を解析中... ({filepath})")
             
             ffmpeg_exe = os.path.join(BIN_DIR, "ffmpeg.exe") if os.name == 'nt' else os.path.join(BIN_DIR, "ffmpeg")
             # peak=true を指定してTrue Peakも同時に計測
@@ -97,15 +108,17 @@ def download_task(original_url: str):
                 audio["----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK"] = [peak_str.encode('utf-8')]
                 audio.save()
                 
-                print(f"[Worker] ReplayGainタグを埋め込みました (ゲイン: {gain_str}, ピーク: {peak_str})")
+                update_status(f"[Worker] ReplayGainタグを埋め込みました (ゲイン: {gain_str}, ピーク: {peak_str})")
+                # 少し待ってから完了メッセージに切り替えるなど
             else:
-                print("[Worker] 音量解析に失敗しました。LUFS値またはピーク値が見つかりません。")
+                update_status("[Worker] 音量解析に失敗しました。LUFS値またはピーク値が見つかりません。")
                 # 解析失敗時にffmpegの出力を表示する
                 print("============================== ffmpeg 出力ログ ==============================")
                 print(ffmpeg_result.stderr)
                 print("=============================================================================")
 
     except subprocess.CalledProcessError as e:
-        print(f"[Worker] エラーが発生しました:\n{e.stderr}")
-    
-    print("=" * 50 + "\n")
+        update_status(f"[Worker] エラーが発生しました:\n{e.stderr}")
+    finally:
+        active_downloads -= 1
+        print("=" * 50 + "\n")
