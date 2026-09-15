@@ -226,17 +226,16 @@ function App() {
               </div>
             ) : (
               filteredSongs.map((song) => (
-                <div key={song.filename} className="p-4 md:p-6 flex flex-row items-center justify-between hover:bg-zinc-800/50 transition-colors group">
+                <div key={song.filename} className="p-2 md:p-3 flex flex-row items-center justify-between hover:bg-zinc-800/50 transition-colors group">
                   
                   {/* アートワーク風のアイコン（仮） */}
-                  <div className="w-12 h-12 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700/50 shrink-0 mr-4">
-                    <Music size={20} className="text-zinc-600" />
+                  <div className="w-10 h-10 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700/50 shrink-0 mr-3">
+                    <Music size={18} className="text-zinc-600" />
                   </div>
 
-                  <div className="flex-1 min-w-0 pr-4 flex flex-col gap-1">
-                    <p className="text-base font-medium text-zinc-100 truncate">{song.title}</p>
-                    <p className="text-sm text-zinc-400 truncate">{song.artist}</p>
-                    <p className="text-xs text-zinc-600 truncate font-mono mt-1">{song.filename}</p>
+                  <div className="flex-1 min-w-0 pr-4 flex flex-col justify-center">
+                    <p className="text-sm font-medium text-zinc-100 truncate">{song.title}</p>
+                    <p className="text-xs text-zinc-400 truncate mt-0.5">{song.artist}</p>
                   </div>
 
                   <button
