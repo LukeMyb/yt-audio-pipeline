@@ -61,62 +61,34 @@ function App() {
     fetchSongs();
   }, []);
 
-  const [isPolling, setIsPolling] = useState(false);
-
-  // 初期ロード時にバックグラウンドで処理が走っていないか確認
+  // SSEによるリアルタイムステータス受信（ポーリング不要・超低負荷）
   useEffect(() => {
-    const checkActive = async () => {
+    // サーバーと1本の持続的な通信パイプを繋ぐ
+    const eventSource = new EventSource(`${API_BASE_URL}/status/stream`);
+
+    // サーバーから新しいデータが「プッシュ送信」された時だけ発火する
+    eventSource.onmessage = (event) => {
       try {
-        const response = await fetch(`${API_BASE_URL}/status`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.is_active) {
-            setIsPolling(true);
-            if (data.status) setStatusMessage(data.status);
-          }
+        const data = JSON.parse(event.data);
+        
+        if (data.status) {
+          setStatusMessage(data.status);
         }
-      } catch (e) {}
-    };
-    checkActive();
-  }, []);
-
-  // バックグラウンドの処理ステータスをポーリング
-  useEffect(() => {
-    let lastStatus = '';
-    
-    // ダウンロード実行中は1秒間隔、待機中（外部からの追加待ち）は5秒間隔にして負荷を抑える
-    const intervalTime = isPolling ? 1000 : 5000;
-    
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/status`);
-        if (response.ok) {
-          const data = await response.json();
-          
-          // ステータスに変化があった時のみメッセージを更新
-          if (data.status && data.status !== lastStatus) {
-            lastStatus = data.status;
-            setStatusMessage(data.status);
-          }
-          
-          // 外部（iOSショートカット等）から追加されて実行中になったのを検知した場合
-          if (data.is_active && !isPolling) {
-            setIsPolling(true);
-          } 
-          // 実行中だった処理が完全に終了した場合
-          else if (!data.is_active && isPolling) {
-            setIsPolling(false);
-            // 処理が完了したはずなのでライブラリを更新
-            fetchSongs();
-          }
+        
+        // 処理が完了したサインを受け取ったらライブラリを更新
+        if (!data.is_active && data.status && (data.status.includes('ReplayGainタグを埋め込みました') || data.status.includes('エラーが発生しました'))) {
+          fetchSongs();
         }
       } catch (e) {
-        setIsPolling(false);
+        console.error("SSE parse error", e);
       }
-    }, intervalTime);
-    
-    return () => clearInterval(interval);
-  }, [isPolling]);
+    };
+
+    // コンポーネントがアンマウントされたら通信を切断する
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   // URL送信処理
   const handleAddUrl = async (e: React.FormEvent) => {
@@ -137,7 +109,6 @@ function App() {
 
       if (response.ok) {
         setUrlInput('');
-        setIsPolling(true); // 送信成功と同時にポーリングを開始
       } else {
         setStatusMessage('エラーが発生しました。');
       }
