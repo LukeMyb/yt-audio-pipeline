@@ -15,3 +15,7 @@ WshShell.Run updateCommand, 0, True
 startCommand = "cmd /c cd /d """ & currentDir & """ && .venv\Scripts\python.exe -m src.main"
 ' 第3引数を False にすることで、完了を待たずに裏で動かし続ける
 WshShell.Run startCommand, 0, False
+
+' ダッシュボード（フロントエンド）をプレビュー環境で起動
+frontendCommand = "cmd /c cd /d """ & currentDir & "\frontend"" && npm run preview"
+WshShell.Run frontendCommand, 0, False

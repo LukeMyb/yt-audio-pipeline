@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Plus, Search, X } from 'lucide-react';
+import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Search, X } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8749';
 
@@ -35,8 +35,8 @@ const Thumbnail = ({ filename }: { filename: string }) => {
 function App() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [urlInput, setUrlInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [urlInput, setUrlInput] = useState('');
+  // const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -125,7 +125,8 @@ function App() {
     };
   }, [selectedSong]);
 
-  // URL送信処理
+  // URL送信処理（一時的に無効化）
+  /*
   const handleAddUrl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!urlInput.trim()) return;
@@ -154,6 +155,7 @@ function App() {
       setIsSubmitting(false);
     }
   };
+  */
 
   // 検索クエリで曲を絞り込む
   const filteredSongs = songs.filter(song => {
