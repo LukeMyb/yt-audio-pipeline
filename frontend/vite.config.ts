@@ -8,5 +8,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    port: 3749,
+    strictPort: true, // ポートが使用中の場合は別のポートにフォールバックせずエラーにする
+    host: true,       // ネットワーク上の他の端末（iPhone等）からもアクセス可能にする
+  },
   envDir: '../',
 })
