@@ -103,3 +103,17 @@ def get_thumbnail(filename: str):
         print(f"[API] サムネイル抽出エラー ({filename}): {e}")
         
     raise HTTPException(status_code=404, detail="サムネイルが見つかりません")
+
+# 音声ファイル取得（再生・ダウンロード用）API（GET /api/songs/{filename}/download）
+from fastapi.responses import FileResponse
+
+@router.get("/{filename}/download")
+def download_song(filename: str):
+    safe_filename = os.path.basename(filename)
+    target_path = Path(ACTIVE_DIR) / safe_filename
+
+    if not target_path.exists():
+        raise HTTPException(status_code=404, detail="ファイルが見つかりません")
+        
+    # Content-Disposition を指定しないことで、ブラウザでのストリーミングプレビューが可能に
+    return FileResponse(path=target_path, media_type="audio/mp4")
