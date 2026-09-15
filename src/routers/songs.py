@@ -71,3 +71,35 @@ def delete_song(filename: str):
         return {"message": "ゴミ箱へ移動完了", "filename": safe_filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"削除（移動）に失敗しました: {e}")
+
+# サムネイル画像取得API（GET /api/songs/{filename}/thumbnail）
+from fastapi.responses import Response
+
+@router.get("/{filename}/thumbnail")
+def get_thumbnail(filename: str):
+    safe_filename = os.path.basename(filename)
+    target_path = Path(ACTIVE_DIR) / safe_filename
+
+    if not target_path.exists():
+        raise HTTPException(status_code=404, detail="ファイルが見つかりません")
+    
+    try:
+        audio = MP4(target_path)
+        covr = audio.tags.get("covr") if audio.tags else None
+        
+        if covr and len(covr) > 0:
+            cover_data = covr[0]
+            # マジックバイトで画像形式を簡易判定
+            if cover_data.startswith(b'\x89PNG'):
+                media_type = "image/png"
+            else:
+                media_type = "image/jpeg"
+                
+            # キャッシュを有効にして無駄なファイル読み込みを減らす
+            headers = {"Cache-Control": "public, max-age=86400"}
+            return Response(content=bytes(cover_data), media_type=media_type, headers=headers)
+            
+    except Exception as e:
+        print(f"[API] サムネイル抽出エラー ({filename}): {e}")
+        
+    raise HTTPException(status_code=404, detail="サムネイルが見つかりません")

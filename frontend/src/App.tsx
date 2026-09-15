@@ -10,6 +10,28 @@ interface Song {
   artist: string;
 }
 
+// サムネイルコンポーネント
+const Thumbnail = ({ filename }: { filename: string }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError) {
+    return (
+      <div className="w-10 h-10 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700/50 shrink-0 mr-3">
+        <Music size={18} className="text-zinc-600" />
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={`${API_BASE_URL}/api/songs/${encodeURIComponent(filename)}/thumbnail`}
+      alt="Thumbnail"
+      className="w-10 h-10 rounded-md object-cover border border-zinc-700/50 shrink-0 mr-3 bg-zinc-800"
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 function App() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -228,10 +250,8 @@ function App() {
               filteredSongs.map((song) => (
                 <div key={song.filename} className="p-2 md:p-3 flex flex-row items-center justify-between hover:bg-zinc-800/50 transition-colors group">
                   
-                  {/* アートワーク風のアイコン（仮） */}
-                  <div className="w-10 h-10 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700/50 shrink-0 mr-3">
-                    <Music size={18} className="text-zinc-600" />
-                  </div>
+                  {/* サムネイル画像（エラー時は自動で音符アイコンにフォールバック） */}
+                  <Thumbnail filename={song.filename} />
 
                   <div className="flex-1 min-w-0 pr-4 flex flex-col justify-center">
                     <p className="text-sm font-medium text-zinc-100 truncate">{song.title}</p>
