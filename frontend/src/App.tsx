@@ -113,6 +113,18 @@ function App() {
     };
   }, []);
 
+  // モーダル表示中の背景スクロールロック
+  useEffect(() => {
+    if (selectedSong) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedSong]);
+
   // URL送信処理
   const handleAddUrl = async (e: React.FormEvent) => {
     e.preventDefault();
