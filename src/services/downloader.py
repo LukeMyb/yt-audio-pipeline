@@ -31,9 +31,16 @@ def download_task(original_url: str):
         "--add-metadata",
         "--embed-thumbnail",
         "--ffmpeg-location", BIN_DIR,
-        "-o", output_template,
-        music_url
+        "-o", output_template
     ]
+
+    # FirefoxブラウザのCookieを読み込む (Chromium系の強固な暗号化を回避するため)
+    command.extend(["--cookies-from-browser", "firefox"])
+    
+    # YouTubeの新しいJSチャレンジ(EJS)を解決するため、Node.jsを使って自動突破する設定
+    command.extend(["--remote-components", "ejs:github"])
+
+    command.append(music_url)
 
     print(f"[Worker] yt-dlpによるダウンロードを開始します...")
     try:
