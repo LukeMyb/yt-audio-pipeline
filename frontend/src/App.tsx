@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Plus } from 'lucide-react';
+import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Plus, Search, X } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8749';
 
@@ -16,6 +16,7 @@ function App() {
   const [urlInput, setUrlInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // 曲一覧を取得する関数
   const fetchSongs = async () => {
@@ -148,6 +149,14 @@ function App() {
     }
   };
 
+  // 検索クエリで曲を絞り込む
+  const filteredSongs = songs.filter(song => {
+    const q = searchQuery.toLowerCase();
+    return song.title.toLowerCase().includes(q) || 
+           song.artist.toLowerCase().includes(q) || 
+           song.filename.toLowerCase().includes(q);
+  });
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 p-4 md:p-8 flex justify-center font-sans">
       <div className="max-w-4xl w-full flex flex-col gap-6">
@@ -201,12 +210,35 @@ function App() {
         </form>
         */}
 
+        {/* 検索窓 */}
+        <div className="flex flex-row gap-2 w-full">
+          <div className="relative grow flex items-center">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="曲名やアーティスト名を入力..."
+              className="p-3.5 pr-10 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-shadow shadow-sm w-full min-w-0"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 p-2 text-zinc-500 hover:text-white rounded-full transition-colors flex items-center justify-center"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* 曲一覧エリア */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
           <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-sm font-medium text-zinc-400 flex items-center gap-2">
               <HardDrive size={16} />
-              ライブラリ ({songs.length}曲)
+              ライブラリ ({filteredSongs.length}曲)
             </h2>
           </div>
 
@@ -216,13 +248,13 @@ function App() {
                 <RefreshCw size={24} className="animate-spin text-zinc-600" />
                 <p>読み込み中...</p>
               </div>
-            ) : songs.length === 0 ? (
+            ) : filteredSongs.length === 0 ? (
               <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-4">
-                <Disc size={32} className="text-zinc-700" />
-                <p>曲がありません。</p>
+                {searchQuery ? <Search size={32} className="text-zinc-700" /> : <Disc size={32} className="text-zinc-700" />}
+                <p>{searchQuery ? '一致する曲が見つかりません。' : '曲がありません。'}</p>
               </div>
             ) : (
-              songs.map((song) => (
+              filteredSongs.map((song) => (
                 <div key={song.filename} className="p-4 md:p-6 flex flex-row items-center justify-between hover:bg-zinc-800/50 transition-colors group">
                   
                   {/* アートワーク風のアイコン（仮） */}
