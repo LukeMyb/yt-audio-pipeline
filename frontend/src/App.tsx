@@ -176,7 +176,7 @@ function App() {
           </button>
         </div>
 
-        {/* URL追加フォーム */}
+        {/* URL追加フォーム（一時的に無効化） 
         <form onSubmit={handleAddUrl} className="flex gap-2 w-full">
           <input
             type="text"
@@ -199,6 +199,7 @@ function App() {
             <span className="hidden sm:inline">追加</span>
           </button>
         </form>
+        */}
 
         {/* 曲一覧エリア */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
