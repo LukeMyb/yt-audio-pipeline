@@ -79,25 +79,31 @@ function App() {
     checkActive();
   }, []);
 
-  // バックグラウンドの処理ステータスをポーリング (isPollingがtrueの時のみ実行)
+  // バックグラウンドの処理ステータスをポーリング
   useEffect(() => {
-    if (!isPolling) return;
-    
     let lastStatus = '';
+    
+    // ダウンロード実行中は1秒間隔、待機中（外部からの追加待ち）は5秒間隔にして負荷を抑える
+    const intervalTime = isPolling ? 1000 : 5000;
     
     const interval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/status`);
         if (response.ok) {
           const data = await response.json();
+          
           // ステータスに変化があった時のみメッセージを更新
           if (data.status && data.status !== lastStatus) {
             lastStatus = data.status;
             setStatusMessage(data.status);
           }
           
-          // バックグラウンド処理が完全に終了したらポーリングを止める
-          if (!data.is_active) {
+          // 外部（iOSショートカット等）から追加されて実行中になったのを検知した場合
+          if (data.is_active && !isPolling) {
+            setIsPolling(true);
+          } 
+          // 実行中だった処理が完全に終了した場合
+          else if (!data.is_active && isPolling) {
             setIsPolling(false);
             // 処理が完了したはずなのでライブラリを更新
             fetchSongs();
@@ -106,7 +112,7 @@ function App() {
       } catch (e) {
         setIsPolling(false);
       }
-    }, 1000);
+    }, intervalTime);
     
     return () => clearInterval(interval);
   }, [isPolling]);
