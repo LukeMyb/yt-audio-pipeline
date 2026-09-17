@@ -5,6 +5,7 @@ import uvicorn
 from dotenv import load_dotenv
 from src.routers import download
 from src.routers import songs
+from src.routers import logs
 
 load_dotenv()
 
@@ -23,6 +24,7 @@ app.add_middleware(
 # ルーターの登録
 app.include_router(download.router)
 app.include_router(songs.router, prefix="/api/songs")
+app.include_router(logs.router, prefix="/api/logs")
 
 # 保存先のディレクトリ設定
 ACTIVE_DIR = os.path.join("data", "active")

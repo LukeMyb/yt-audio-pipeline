@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Search, X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Music, RefreshCw, Trash2, HardDrive, Disc, Download, Search, X, Terminal } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8749';
 
@@ -44,6 +44,46 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  
+  // ログ用ステート
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [activeLogTab, setActiveLogTab] = useState<'download' | 'delete'>('download');
+  const [logContent, setLogContent] = useState('');
+  const [isLogLoading, setIsLogLoading] = useState(false);
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  // ログが更新されたら一番下までスクロール
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logContent, isLogModalOpen]);
+
+  // ログを取得する関数
+  const fetchLog = async (type: 'download' | 'delete') => {
+    setIsLogLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/logs/${type}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLogContent(data.content);
+      } else {
+        setLogContent('ログの取得に失敗しました。');
+      }
+    } catch (error) {
+      console.error('通信エラー:', error);
+      setLogContent('サーバーと通信できませんでした。');
+    } finally {
+      setIsLogLoading(false);
+    }
+  };
+
+  // ログタブが切り替わった時、またはモーダルが開いた時にログを取得
+  useEffect(() => {
+    if (isLogModalOpen) {
+      fetchLog(activeLogTab);
+    }
+  }, [isLogModalOpen, activeLogTab]);
 
   // 曲一覧を取得する関数
   const fetchSongs = async () => {
@@ -128,7 +168,7 @@ function App() {
 
   // モーダル表示中の背景スクロールロック
   useEffect(() => {
-    if (selectedSong) {
+    if (selectedSong || isLogModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -136,7 +176,7 @@ function App() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [selectedSong]);
+  }, [selectedSong, isLogModalOpen]);
 
   // URL送信処理（一時的に無効化）
   /*
@@ -216,13 +256,22 @@ function App() {
             </div>
             YouTube Audio Manager
           </h1>
-          <button 
-            onClick={fetchSongs}
-            className="p-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-md transition-colors flex items-center justify-center shrink-0 border border-zinc-800 shadow-sm"
-            title="ライブラリを更新"
-          >
-            <RefreshCw size={18} className={isLoading ? 'animate-spin text-blue-500' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setIsLogModalOpen(true)}
+              className="p-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-md transition-colors flex items-center justify-center shrink-0 border border-zinc-800 shadow-sm"
+              title="ログを表示"
+            >
+              <Terminal size={18} />
+            </button>
+            <button 
+              onClick={fetchSongs}
+              className="p-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-md transition-colors flex items-center justify-center shrink-0 border border-zinc-800 shadow-sm"
+              title="ライブラリを更新"
+            >
+              <RefreshCw size={18} className={isLoading ? 'animate-spin text-blue-500' : ''} />
+            </button>
+          </div>
         </div>
 
         {/* URL追加フォーム（一時的に無効化） 
@@ -411,6 +460,67 @@ function App() {
                   <Trash2 size={20} />
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ログのモーダルダイアログ */}
+      {isLogModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsLogModalOpen(false)}
+        >
+          <div 
+            className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-3xl h-[80vh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ヘッダーとタブ */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveLogTab('download')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeLogTab === 'download' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  ダウンロードログ
+                </button>
+                <button
+                  onClick={() => setActiveLogTab('delete')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeLogTab === 'delete' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  削除ログ
+                </button>
+              </div>
+              
+              <button 
+                onClick={() => setIsLogModalOpen(false)}
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* ログ表示エリア */}
+            <div className="flex-1 overflow-auto p-4 bg-zinc-950 font-mono text-xs sm:text-sm text-zinc-300">
+              {isLogLoading ? (
+                <div className="flex justify-center items-center h-full text-zinc-500">
+                  <RefreshCw size={24} className="animate-spin mr-2" />
+                  読み込み中...
+                </div>
+              ) : (
+                <>
+                  <pre className="whitespace-pre-wrap break-words">{logContent || 'ログはありません。'}</pre>
+                  <div ref={logEndRef} />
+                </>
+              )}
             </div>
           </div>
         </div>
