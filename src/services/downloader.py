@@ -4,6 +4,7 @@ import sys
 import re
 from pathlib import Path
 from mutagen.mp4 import MP4
+from src.services.jellyfin import refresh_jellyfin
 
 # 保存先のディレクトリ設定
 SAVE_DIR = os.path.join("data", "active")
@@ -111,6 +112,10 @@ def download_task(original_url: str):
                 audio.save()
                 
                 update_status(f"[Worker] ReplayGainタグを埋め込みました (ゲイン: {gain_str}, ピーク: {peak_str})")
+                # Jellyfinのライブラリ更新をトリガー
+                jelly_msg = refresh_jellyfin()
+                if jelly_msg:
+                    update_status(jelly_msg)
                 # 少し待ってから完了メッセージに切り替えるなど
             else:
                 update_status("[Worker] 音量解析に失敗しました。LUFS値またはピーク値が見つかりません。")

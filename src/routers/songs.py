@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from mutagen.mp4 import MP4
+from src.services.jellyfin import refresh_jellyfin
 
 # ルーターの立ち上げ
 router = APIRouter()
@@ -67,8 +68,15 @@ def delete_song(filename: str):
         trash_path = Path(TRASH_DIR) / safe_filename
         shutil.move(str(target_path), str(trash_path))
         
+        # Jellyfinのライブラリ更新をトリガー
+        jelly_msg = refresh_jellyfin()
+        
         print(f"[API] ファイルをゴミ箱に移動しました: {safe_filename}")
-        return {"message": "ゴミ箱へ移動完了", "filename": safe_filename}
+        return {
+            "message": "ゴミ箱へ移動完了",
+            "filename": safe_filename,
+            "jellyfin_status": jelly_msg
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"削除（移動）に失敗しました: {e}")
 

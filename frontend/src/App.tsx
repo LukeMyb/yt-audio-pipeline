@@ -68,7 +68,12 @@ function App() {
         method: 'DELETE',
       });
       if (response.ok) {
-        setStatusMessage(`「${filename}」を削除しました`);
+        const data = await response.json();
+        let msg = `「${filename}」を削除しました`;
+        if (data.jellyfin_status) {
+          msg += `。${data.jellyfin_status}`;
+        }
+        setStatusMessage(msg);
         fetchSongs();
       } else {
         setStatusMessage('削除に失敗しました。');
@@ -99,7 +104,11 @@ function App() {
         }
         
         // 処理が完了したサインを受け取ったらライブラリを更新
-        if (!data.is_active && data.status && (data.status.includes('ReplayGainタグを埋め込みました') || data.status.includes('エラーが発生しました'))) {
+        if (!data.is_active && data.status && (
+          data.status.includes('ReplayGainタグを埋め込みました') || 
+          data.status.includes('Jellyfin') ||
+          data.status.includes('エラーが発生しました')
+        )) {
           fetchSongs();
         }
       } catch (e) {
