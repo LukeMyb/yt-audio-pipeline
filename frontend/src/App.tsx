@@ -8,6 +8,7 @@ interface Song {
   filename: string;
   title: string;
   artist: string;
+  created_at: number;
 }
 
 // サムネイルコンポーネント
@@ -32,6 +33,8 @@ const Thumbnail = ({ filename }: { filename: string }) => {
   );
 };
 
+type SortOrder = 'newest' | 'oldest' | 'title_asc' | 'title_desc' | 'artist_asc' | 'artist_desc';
+
 function App() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +43,7 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
   // 曲一覧を取得する関数
   const fetchSongs = async () => {
@@ -166,13 +170,32 @@ function App() {
   };
   */
 
-  // 検索クエリで曲を絞り込む
-  const filteredSongs = songs.filter(song => {
-    const q = searchQuery.toLowerCase();
-    return song.title.toLowerCase().includes(q) || 
-           song.artist.toLowerCase().includes(q) || 
-           song.filename.toLowerCase().includes(q);
-  });
+  // 検索クエリで曲を絞り込み、指定された順序でソートする
+  const filteredSongs = songs
+    .filter(song => {
+      const q = searchQuery.toLowerCase();
+      return song.title.toLowerCase().includes(q) || 
+             song.artist.toLowerCase().includes(q) || 
+             song.filename.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      switch (sortOrder) {
+        case 'newest':
+          return b.created_at - a.created_at;
+        case 'oldest':
+          return a.created_at - b.created_at;
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
+        case 'artist_asc':
+          return a.artist.localeCompare(b.artist);
+        case 'artist_desc':
+          return b.artist.localeCompare(a.artist);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 p-4 md:p-8 flex justify-center font-sans">
@@ -257,6 +280,18 @@ function App() {
               <HardDrive size={16} />
               ライブラリ ({filteredSongs.length}曲)
             </h2>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+              className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1.5 outline-none cursor-pointer"
+            >
+              <option value="newest">新着順</option>
+              <option value="oldest">古い順</option>
+              <option value="title_asc">タイトル昇順</option>
+              <option value="title_desc">タイトル降順</option>
+              <option value="artist_asc">アーティスト昇順</option>
+              <option value="artist_desc">アーティスト降順</option>
+            </select>
           </div>
 
           <div className="divide-y divide-zinc-800/80">

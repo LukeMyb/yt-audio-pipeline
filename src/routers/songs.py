@@ -19,6 +19,7 @@ class Song(BaseModel):
     filename: str
     title: str
     artist: str
+    created_at: float
 
 # 楽曲一覧取得API（GET /api/songs）
 @router.get("/", response_model=list[Song])
@@ -38,10 +39,13 @@ def get_songs():
             title = audio.tags.get("\xa9nam", [filepath.stem])[0] if audio.tags else filepath.stem
             artist = audio.tags.get("\xa9ART", ["Unknown Artist"])[0] if audio.tags else "Unknown Artist"
             
+            created_at = filepath.stat().st_mtime
+            
             songs.append(Song(
                 filename=filepath.name,
                 title=title,
-                artist=artist
+                artist=artist,
+                created_at=created_at
             ))
         except Exception as e:
             print(f"[API] メタデータ読み込みエラー ({filepath.name}): {e}")
@@ -49,7 +53,8 @@ def get_songs():
             songs.append(Song(
                 filename=filepath.name,
                 title=filepath.stem,
-                artist="Unknown Artist"
+                artist="Unknown Artist",
+                created_at=filepath.stat().st_mtime
             ))
     
     return songs
