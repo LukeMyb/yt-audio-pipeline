@@ -3,6 +3,7 @@ from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from src.services.downloader import download_task, current_status
 import src.services.downloader as downloader
+from src.services.logger import download_logger
 from fastapi.responses import StreamingResponse
 import asyncio
 import json
@@ -51,8 +52,11 @@ async def status_stream(request: Request):
 @router.post("/add")
 def add_to_queue(request: URLRequest, background_tasks: BackgroundTasks):
     # 届いたURLをターミナルに表示する
+    msg = f"[Endpoint] URLを受信しました: {request.url}"
     print("\n" + "=" * 50)
-    print(f"[Endpoint] URLを受信しました: {request.url}")
+    print(msg)
+    download_logger.info("=" * 50)
+    download_logger.info(msg)
     
     # download_taskにURLをパス
     background_tasks.add_task(download_task, request.url)

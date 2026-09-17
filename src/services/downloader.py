@@ -4,6 +4,7 @@ import sys
 import re
 from pathlib import Path
 from mutagen.mp4 import MP4
+from src.services.logger import download_logger
 from src.services.jellyfin import refresh_jellyfin
 
 # 保存先のディレクトリ設定
@@ -17,6 +18,7 @@ def update_status(msg: str):
     global current_status
     current_status = msg
     print(msg)
+    download_logger.info(msg)
 
 # バックグラウンドでのダウンロード処理
 def download_task(original_url: str):
@@ -120,9 +122,11 @@ def download_task(original_url: str):
             else:
                 update_status("[Worker] 音量解析に失敗しました。LUFS値またはピーク値が見つかりません。")
                 # 解析失敗時にffmpegの出力を表示する
+                error_msg = f"ffmpeg 出力ログ:\n{ffmpeg_result.stderr}"
                 print("============================== ffmpeg 出力ログ ==============================")
                 print(ffmpeg_result.stderr)
                 print("=============================================================================")
+                download_logger.error(error_msg)
 
     except subprocess.TimeoutExpired:
         update_status("[Worker] エラー: 処理がタイムアウトしました。")
